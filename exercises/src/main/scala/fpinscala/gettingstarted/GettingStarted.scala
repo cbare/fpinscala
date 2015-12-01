@@ -36,7 +36,18 @@ object MyModule {
 
   // Exercise 1: Write a function to compute the nth fibonacci number
 
-  def fib(n: Int): Int = ???
+  def fib(n: Int): Int = {
+    @annotation.tailrec
+    def go(f0: Int, f1: Int, i: Int): Int = {
+      if (i>2) go(f1, f0+f1, i-1)
+      else f0 + f1
+    }
+    n match {
+      case n if n <= 0 => 0
+      case 1 => 1
+      case _ => go(0, 1, n)
+    }
+  }
 
   // This definition and `formatAbs` are very similar..
   private def formatFactorial(n: Int) = {
@@ -72,6 +83,7 @@ object TestFib {
   def main(args: Array[String]): Unit = {
     println("Expected: 0, 1, 1, 2, 3, 5, 8")
     println("Actual:   %d, %d, %d, %d, %d, %d, %d".format(fib(0), fib(1), fib(2), fib(3), fib(4), fib(5), fib(6)))
+
   }
 }
 
@@ -140,7 +152,16 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ???
+  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
+    if (as.length < 2) true
+    else {
+      for (i <- 1 to as.length-1) {
+        if (gt(as(i-1), as(i)))
+          return false
+      }
+      true
+    }
+  }
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
@@ -153,13 +174,14 @@ object PolymorphicFunctions {
   // Note that `=>` associates to the right, so we could
   // write the return type as `A => B => C`
   def curry[A,B,C](f: (A, B) => C): A => (B => C) =
-    ???
+    // (a:A) => partial1(a, f)
+    a => b => f(a, b)
 
   // NB: The `Function2` trait has a `curried` method already
 
   // Exercise 4: Implement `uncurry`
   def uncurry[A,B,C](f: A => B => C): (A, B) => C =
-    ???
+    (a, b) => f(a)(b)
 
   /*
   NB: There is a method on the `Function` object in the standard library,
@@ -174,5 +196,20 @@ object PolymorphicFunctions {
   // Exercise 5: Implement `compose`
 
   def compose[A,B,C](f: B => C, g: A => B): A => C =
-    ???
+    a => f(g(a))
 }
+
+
+object TestPolymorphicFunctions {
+
+  import PolymorphicFunctions._
+
+  // test implementation of `fib`
+  def main(args: Array[String]): Unit = {
+    println("first list is sorted: %s".format(
+      isSorted(Array(1,4,7,9,12,19,27,33,42,76), (a:Int,b:Int) => a > b)))
+    println("second list is sorted: %s".format(
+      isSorted(Array(1,4,7,9,13,12,19,27,33,42,76), (a:Int,b:Int) => a > b )))
+  }
+}
+
